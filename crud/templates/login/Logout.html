@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logged Out</title>
+    <style>
+        body {
+            background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logout-container {
+            background: #fff;
+            max-width: 370px;
+            width: 100%;
+            margin: 40px auto;
+            padding: 38px 32px 28px 32px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(52, 152, 219, 0.15);
+            text-align: center;
+        }
+        h2 {
+            color: #357abd;
+            margin-bottom: 18px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 18px;
+            color: #fff;
+            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        a:hover {
+            background: linear-gradient(90deg, #357abd 0%, #4a90e2 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <h2>You have been logged out.</h2>
+        <a href="/login">Back to Login</a>
+    </div>
+</body>
+</html>

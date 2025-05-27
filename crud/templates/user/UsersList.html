@@ -20,7 +20,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for user in users %}
+                {% for user in page_obj %}
                 <tr class="transition hover:bg-blue-50 dark:hover:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <td class="px-6 py-4 font-semibold">{{ user.full_name }}</td>
                     <td class="px-6 py-4">{{ user.gender.gender }}</td>
@@ -55,6 +55,20 @@
                 {% endfor %}
             </tbody>
         </table>
+        <!-- Pagination Controls -->
+        <div class="flex justify-center items-center gap-2 py-6">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">&laquo; First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">&lsaquo; Prev</a>
+            {% endif %}
+            <span class="px-3 py-1 rounded bg-blue-200 text-blue-900 font-bold">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">Next &rsaquo;</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">Last &raquo;</a>
+            {% endif %}
+        </div>
     </div>
 </div>
 

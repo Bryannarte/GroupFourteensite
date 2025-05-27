@@ -2,10 +2,13 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib import messages
 from .models import Genders, Users
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
+from .decorators import login_required_custom
+from django.core.paginator import Paginator
 
 # Create your views here.
 
+@login_required_custom
 def gender_list(request):
     try:
         genders = Genders.objects.all()
@@ -16,6 +19,7 @@ def gender_list(request):
     except Exception as e:
         return HttpResponse(f'Error occurred during loads genders: {e}')
 
+@login_required_custom
 def add_gender(request):
     try:
         if request.method == 'POST':
@@ -28,6 +32,7 @@ def add_gender(request):
     except Exception as e:
         return HttpResponse(f'Error occurred during add gender: {e}')
 
+@login_required_custom
 def edit_gender(request, genderId):
     try:
         genderObj = Genders.objects.get(pk=genderId)
@@ -44,6 +49,7 @@ def edit_gender(request, genderId):
     except Exception as e:
         return HttpResponse(f'Error occurred during edit gender: {e}')
 
+@login_required_custom
 def delete_gender(request, genderId):
     try:
         genderObj = Genders.objects.get(pk=genderId)
@@ -58,17 +64,21 @@ def delete_gender(request, genderId):
     except Exception as e:
         return HttpResponse(f'Error occurred during delete gender: {e}')
 
+@login_required_custom
 def user_list(request):
     try:
-         userObj = Users.objects.select_related('gender')
-
-         data = {
-               'users': userObj
-         }
-         return render(request, 'user/UsersList.html', data)
+        userObj = Users.objects.select_related('gender').all().order_by('user_id')
+        paginator = Paginator(userObj, 10)  # Show 10 users per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        data = {
+            'page_obj': page_obj
+        }
+        return render(request, 'user/UsersList.html', data)
     except Exception as e:
         return HttpResponse(f'Error occurred during loads users: {e}')       
 
+@login_required_custom
 def add_user(request):
     try:
         if request.method == 'POST':
@@ -107,6 +117,7 @@ def add_user(request):
     except Exception as e:
         return HttpResponse(f"Error occurred during add user: {e}")
     
+@login_required_custom
 def edit_user(request, userId):
     try:
         userObj = Users.objects.get(pk=userId)
@@ -149,6 +160,7 @@ def edit_user(request, userId):
     except Exception as e:
         return HttpResponse(f'Error occurred during edit user: {e}')
     
+@login_required_custom
 def delete_user(request, userId):
     try:
         userObj = Users.objects.get(pk=userId)
@@ -166,5 +178,29 @@ def delete_user(request, userId):
         return redirect('/user/list')
     except Exception as e:
         return HttpResponse(f'Error occurred during delete user: {e}')
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username', '')
+        password = request.POST.get('password', '')
+        try:
+            user = Users.objects.get(username=username)
+            if check_password(password, user.password):
+                request.session['user_id'] = user.user_id
+                request.session['username'] = user.username
+                messages.success(request, 'Login successful!')
+                return redirect('/user/list')
+            else:
+                messages.error(request, 'Invalid username or password.')
+                return redirect('/login')
+        except Users.DoesNotExist:
+            messages.error(request, 'Invalid username or password.')
+            return redirect('/login')
+    return render(request, 'login/Login.html')
+
+def user_logout(request):
+    request.session.flush()
+    messages.success(request, "You have been logged out.")
+    return render(request, 'login/Logout.html')
 
 
