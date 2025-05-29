@@ -5,6 +5,7 @@ from .models import Genders, Users
 from django.contrib.auth.hashers import make_password, check_password
 from .decorators import login_required_custom
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 # Create your views here.
 
@@ -67,12 +68,22 @@ def delete_gender(request, genderId):
 @login_required_custom
 def user_list(request):
     try:
+        query = request.GET.get('q', '')
         userObj = Users.objects.select_related('gender').all().order_by('user_id')
-        paginator = Paginator(userObj, 10)  # Show 10 users per page
+        if query:
+            userObj = userObj.filter(
+                Q(full_name__icontains=query) |
+                Q(username__icontains=query) |
+                Q(email__icontains=query) |
+                Q(address__icontains=query) |
+                Q(contact_number__icontains=query)
+            )
+        paginator = Paginator(userObj, 5)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         data = {
-            'page_obj': page_obj
+            'page_obj': page_obj,
+            'query': query
         }
         return render(request, 'user/UsersList.html', data)
     except Exception as e:
@@ -95,6 +106,17 @@ def add_user(request):
             if password != confirm_password:
                 messages.error(request, 'Password and confirm password do not match!')
                 return redirect('/user/add')
+
+            # Check if username already exists
+            if Users.objects.filter(username=username).exists():
+                messages.error(request, 'This username is already used by another user. Please choose a different username.')
+                return redirect('/user/add')
+
+            # Check if password already exists in the database
+            for user in Users.objects.all():
+                if check_password(password, user.password):
+                    messages.error(request, 'This password is already used by another user. Please choose a different password.')
+                    return redirect('/user/add')
 
             Users.objects.create(
                 full_name=fullname,
@@ -132,9 +154,21 @@ def edit_user(request, userId):
             password = request.POST.get('password')
             confirm_password = request.POST.get('confirm_password')
 
-            if password != confirm_password:
-                messages.error(request, 'Password and confirm password do not match!')
+            # Check if username is already used by another user
+            if Users.objects.filter(username=username).exclude(pk=userId).exists():
+                messages.error(request, 'This username is already used by another user. Please choose a different username.')
                 return redirect(f'/user/edit/{userId}')
+
+            # Check if password is already used by another user
+            if password:
+                if password != confirm_password:
+                    messages.error(request, 'Password and confirm password do not match!')
+                    return redirect(f'/user/edit/{userId}')
+                for user in Users.objects.exclude(pk=userId):
+                    if check_password(password, user.password):
+                        messages.error(request, 'This password is already used by another user. Please choose a different password.')
+                        return redirect(f'/user/edit/{userId}')
+                userObj.password = make_password(password)
 
             userObj.full_name = fullname
             userObj.gender = Genders.objects.get(pk=gender_id)
@@ -143,9 +177,6 @@ def edit_user(request, userId):
             userObj.contact_number = contact_number
             userObj.email = email
             userObj.username = username
-
-            if password:
-                userObj.password = make_password(password)
 
             userObj.save()
             messages.success(request, 'User updated successfully!')

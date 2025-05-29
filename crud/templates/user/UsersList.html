@@ -7,6 +7,20 @@
 
 <div class="p-4 sm:ml-64 mt-20 overflow-y-auto h-[calc(100vh-5rem)]">
     <div class="relative overflow-x-auto rounded-2xl shadow-2xl bg-white dark:bg-gray-900 border border-blue-100 dark:border-gray-800">
+        <!-- Search Form -->
+        <form method="get" class="mb-6 flex justify-end">
+            <input
+                type="text"
+                name="q"
+                value="{{ query|default:'' }}"
+                placeholder="Search users..."
+                class="px-4 py-2 border border-blue-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
+            />
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition">
+                Search
+            </button>
+        </form>
+
         <table class="w-full text-sm text-left text-gray-700 dark:text-gray-300">
             <thead class="text-xs text-gray-800 uppercase bg-gradient-to-r from-blue-100 to-blue-400 dark:from-gray-800 dark:to-gray-700 dark:text-gray-200">
                 <tr>
@@ -57,17 +71,20 @@
         </table>
         <!-- Pagination Controls -->
         <div class="flex justify-center items-center gap-2 py-6">
-            {% if page_obj.has_previous %}
-                <a href="?page=1" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">&laquo; First</a>
-                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">&lsaquo; Prev</a>
-            {% endif %}
-            <span class="px-3 py-1 rounded bg-blue-200 text-blue-900 font-bold">
+            <span class="text-gray-600 dark:text-gray-300">
                 Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
             </span>
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">Next &rsaquo;</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 rounded bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200">Last &raquo;</a>
-            {% endif %}
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ query|default:'' }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Previous
+                </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&q={{ query|default:'' }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Next
+                </a>
+                {% endif %}
         </div>
     </div>
 </div>
